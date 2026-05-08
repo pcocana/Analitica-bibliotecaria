@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analítica de Colecciones · Biblioteca Universitaria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <rect x="2" y="4" width="6" height="20" rx="1" fill="currentColor" opacity="0.9"/>
+        <rect x="10" y="7" width="6" height="17" rx="1" fill="currentColor" opacity="0.7"/>
+        <rect x="18" y="2" width="6" height="22" rx="1" fill="currentColor" opacity="0.5"/>
+        <path d="M2 26h24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <span class="brand-title">BiblioAnalytics</span>
+      <span class="brand-sub">Colecciones Universitarias</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-group">
+      <span class="nav-label">Principal</span>
+      <a href="#" class="nav-item active" data-section="upload">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M10 3v9m0-9L7 6m3-3l3 3M3 14l.5 2A1.5 1.5 0 005 17.5h10A1.5 1.5 0 0016.5 16L17 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Carga de Datos
+      </a>
+      <a href="#" class="nav-item" data-section="dashboard">
+        <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="2" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="11" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="11" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+        Dashboard KPI
+      </a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-label">Análisis</span>
+      <a href="#" class="nav-item" data-section="charts">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M3 17l4-7 4 3 4-6 4 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Gráficos
+      </a>
+      <a href="#" class="nav-item" data-section="obsolescence">
+        <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3.5l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Obsolescencia
+      </a>
+      <a href="#" class="nav-item" data-section="recommendations">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M10 2.5a7.5 7.5 0 100 15 7.5 7.5 0 000-15zM10 6v5M10 13v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Recomendaciones
+      </a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-label">Exportar</span>
+      <a href="#" class="nav-item" data-section="export">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M10 13V4m0 9l-3-3m3 3l3-3M3 14l.5 2A1.5 1.5 0 005 17.5h10A1.5 1.5 0 0016.5 16L17 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Exportar
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="btn-clear" id="btnClear" onclick="clearAllData()">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5 4V2.5h6V4M6 7v5M10 7v5M3 4l.8 9.5A1 1 0 004.8 14.5h6.4a1 1 0 001-.9L13 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Limpiar datos
+    </button>
+  </div>
+</aside>
+
+<!-- MOBILE HEADER -->
+<header class="mobile-header">
+  <button class="hamburger" onclick="toggleSidebar()">
+    <span></span><span></span><span></span>
+  </button>
+  <span class="mobile-title">BiblioAnalytics</span>
+  <div style="width:40px"></div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+
+  <!-- ==================== UPLOAD SECTION ==================== -->
+  <section id="section-upload" class="section active">
+    <div class="section-header">
+      <div>
+        <h1 class="section-title">Carga de Datos</h1>
+        <p class="section-desc">Sube tu archivo Excel o ingresa datos manualmente para comenzar el análisis.</p>
+      </div>
+      <button class="btn-demo" onclick="loadDemoData()">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM5.5 8l2 2 3-3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Cargar datos de ejemplo
+      </button>
+    </div>
+
+    <!-- DRAG & DROP ZONE -->
+    <div class="upload-card">
+      <div class="drag-zone" id="dragZone"
+           ondragover="handleDragOver(event)"
+           ondragleave="handleDragLeave(event)"
+           ondrop="handleDrop(event)">
+        <div class="drag-icon">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <rect x="6" y="8" width="36" height="32" rx="3" stroke="currentColor" stroke-width="2"/>
+            <path d="M16 20h16M16 26h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M30 30l4-4 4 4M34 26v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <p class="drag-title">Arrastra tu archivo Excel aquí</p>
+        <p class="drag-sub">o haz clic para seleccionar</p>
+        <p class="drag-formats">Formatos aceptados: <strong>.xlsx</strong> · <strong>.xls</strong></p>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileSelect(event)" hidden />
+        <button class="btn-upload" onclick="document.getElementById('fileInput').click()">
+          Seleccionar archivo
+        </button>
+      </div>
+
+      <!-- VALIDATION STATUS -->
+      <div class="validation-panel" id="validationPanel" style="display:none">
+        <div class="val-header">
+          <span class="val-icon" id="valIcon">⏳</span>
+          <span class="val-title" id="valTitle">Procesando archivo…</span>
+        </div>
+        <div id="valMessages" class="val-messages"></div>
+        <button class="btn-continue" id="btnContinue" onclick="goToDashboard()" style="display:none">
+          Ver Dashboard →
+        </button>
+      </div>
+    </div>
+
+    <!-- MANUAL ENTRY TABS -->
+    <div class="manual-card">
+      <div class="manual-header">
+        <h3>Ingreso Manual de Datos</h3>
+        <p>Completa las hojas requeridas si no tienes un archivo Excel.</p>
+      </div>
+
+      <div class="sheet-tabs">
+        <button class="sheet-tab active" data-tab="coleccion">Colección</button>
+        <button class="sheet-tab" data-tab="prestamos">Préstamos</button>
+        <button class="sheet-tab" data-tab="bibliografia">Bibliografía</button>
+        <button class="sheet-tab" data-tab="reservas">Reservas</button>
+      </div>
+
+      <!-- COLECCIÓN TAB -->
+      <div class="sheet-content active" id="tab-coleccion">
+        <div class="table-toolbar">
+          <button class="btn-add-row" onclick="addManualRow('coleccion')">+ Agregar fila</button>
+        </div>
+        <div class="table-scroll">
+          <table class="manual-table" id="table-coleccion">
+            <thead>
+              <tr><th>ID</th><th>Título</th><th>Área</th><th>Ejemplares</th><th>Último Préstamo</th><th>Costo ($)</th><th></th></tr>
+            </thead>
+            <tbody id="tbody-coleccion"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PRÉSTAMOS TAB -->
+      <div class="sheet-content" id="tab-prestamos">
+        <div class="table-toolbar">
+          <button class="btn-add-row" onclick="addManualRow('prestamos')">+ Agregar fila</button>
+        </div>
+        <div class="table-scroll">
+          <table class="manual-table" id="table-prestamos">
+            <thead>
+              <tr><th>ID Título</th><th>Fecha</th><th>Carrera</th><th></th></tr>
+            </thead>
+            <tbody id="tbody-prestamos"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- BIBLIOGRAFÍA TAB -->
+      <div class="sheet-content" id="tab-bibliografia">
+        <div class="table-toolbar">
+          <button class="btn-add-row" onclick="addManualRow('bibliografia')">+ Agregar fila</button>
+        </div>
+        <div class="table-scroll">
+          <table class="manual-table" id="table-bibliografia">
+            <thead>
+              <tr><th>Carrera</th><th>Asignatura</th><th>Título</th><th>Disponible</th><th></th></tr>
+            </thead>
+            <tbody id="tbody-bibliografia"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RESERVAS TAB -->
+      <div class="sheet-content" id="tab-reservas">
+        <div class="table-toolbar">
+          <button class="btn-add-row" onclick="addManualRow('reservas')">+ Agregar fila</button>
+        </div>
+        <div class="table-scroll">
+          <table class="manual-table" id="table-reservas">
+            <thead>
+              <tr><th>Título</th><th>Solicitudes</th><th>Satisfechas</th><th></th></tr>
+            </thead>
+            <tbody id="tbody-reservas"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="manual-actions">
+        <button class="btn-primary" onclick="processManualData()">Calcular Indicadores</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== DASHBOARD SECTION ==================== -->
+  <section id="section-dashboard" class="section">
+    <div class="section-header">
+      <div>
+        <h1 class="section-title">Dashboard KPI</h1>
+        <p class="section-desc">Indicadores de uso y estado de la colección.</p>
+      </div>
+      <div class="filter-row" id="dashboardFilters">
+        <select class="filter-select" id="filterArea" onchange="applyFilters()">
+          <option value="">Todas las áreas</option>
+        </select>
+        <select class="filter-select" id="filterCarrera" onchange="applyFilters()">
+          <option value="">Todas las carreras</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <!-- SEMÁFORO SUMMARY -->
+    <div class="semaforo-card">
+      <h3 class="card-title">Estado General de la Colección</h3>
+      <div class="semaforo-grid" id="semaforoGrid"></div>
+    </div>
+
+    <!-- INDICATORS TABLE -->
+    <div class="indicators-card">
+      <h3 class="card-title">Tabla de Indicadores Detallados</h3>
+      <div class="table-scroll">
+        <table class="data-table" id="indicatorsTable">
+          <thead>
+            <tr><th>Indicador</th><th>Valor</th><th>Referencia</th><th>Estado</th><th>Descripción</th></tr>
+          </thead>
+          <tbody id="indicatorsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== CHARTS SECTION ==================== -->
+  <section id="section-charts" class="section">
+    <div class="section-header">
+      <div>
+        <h1 class="section-title">Gráficos</h1>
+        <p class="section-desc">Visualización detallada del uso de la colección.</p>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card wide">
+        <div class="chart-card-header">
+          <h3>Préstamos por Carrera</h3>
+          <span class="chart-badge">Barras</span>
+        </div>
+        <div class="chart-container"><canvas id="chartCarrera"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h3>Colección: Usada vs No Usada</h3>
+          <span class="chart-badge">Torta</span>
+        </div>
+        <div class="chart-container"><canvas id="chartUsage"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h3>Préstamos Mensuales</h3>
+          <span class="chart-badge">Línea</span>
+        </div>
+        <div class="chart-container"><canvas id="chartMonthly"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h3>Uso por Área Disciplinar</h3>
+          <span class="chart-badge">Barras</span>
+        </div>
+        <div class="chart-container"><canvas id="chartArea"></canvas></div>
+      </div>
+
+      <div class="chart-card wide">
+        <div class="chart-card-header">
+          <h3>Ranking: Menor Uso de Colección</h3>
+          <span class="chart-badge">Horizontal</span>
+        </div>
+        <div class="chart-container"><canvas id="chartRanking"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== OBSOLESCENCE SECTION ==================== -->
+  <section id="section-obsolescence" class="section">
+    <div class="section-header">
+      <div>
+        <h1 class="section-title">Módulo de Obsolescencia</h1>
+        <p class="section-desc">Detección de colecciones sin uso, candidatos a descarte y baja circulación.</p>
+      </div>
+    </div>
+
+    <!-- SUMMARY CARDS -->
+    <div class="obs-summary-grid" id="obsSummaryGrid"></div>
+
+    <!-- OBSOLESCENCE TABLE -->
+    <div class="obs-card">
+      <div class="obs-card-header">
+        <h3 class="card-title">Ranking de Obsolescencia</h3>
+        <div class="obs-filters">
+          <select class="filter-select" id="obsFilterStatus" onchange="filterObsTable()">
+            <option value="">Todos</option>
+            <option value="critico">Crítico</option>
+            <option value="revisar">Revisar</option>
+            <option value="bajo">Bajo uso</option>
+          </select>
+          <input type="text" class="filter-input" id="obsSearch" placeholder="Buscar título…" oninput="filterObsTable()" />
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table" id="obsTable">
+          <thead>
+            <tr><th>#</th><th>Título</th><th>Área</th><th>Ejemplares</th><th>Último Uso</th><th>Años sin uso</th><th>Préstamos</th><th>Índice</th><th>Estado</th></tr>
+          </thead>
+          <tbody id="obsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== RECOMMENDATIONS SECTION ==================== -->
+  <section id="section-recommendations" class="section">
+    <div class="section-header">
+      <div>
+        <h1 class="section-title">Recomendaciones</h1>
+        <p class="section-desc">Análisis inteligente basado en los indicadores calculados.</p>
+      </div>
+    </div>
+
+    <div id="recommendationsContainer" class="recommendations-container"></div>
+  </section>
+
+  <!-- ==================== EXPORT SECTION ==================== -->
+  <section id="section-export" class="section">
+    <div class="section-header">
+      <div>
+        <h1 class="section-title">Exportar</h1>
+        <p class="section-desc">Genera informes y descarga los resultados del análisis.</p>
+      </div>
+    </div>
+
+    <div class="export-grid">
+      <div class="export-card">
+        <div class="export-icon pdf-icon">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="6" y="4" width="28" height="32" rx="3" fill="#fee2e2"/><path d="M10 14h20M10 20h14M10 26h8" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/><path d="M24 26l4 4 6-8" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Informe PDF</h3>
+        <p>Reporte completo con todos los indicadores, resumen ejecutivo y recomendaciones.</p>
+        <button class="btn-export" onclick="exportPDF()">Descargar PDF</button>
+      </div>
+
+      <div class="export-card">
+        <div class="export-icon excel-icon">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="6" y="4" width="28" height="32" rx="3" fill="#dcfce7"/><path d="M13 14l5 6-5 6M21 14h8M21 20h6M21 26h8" stroke="#16a34a" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Resultados Excel</h3>
+        <p>Exporta todos los indicadores y datos procesados en formato Excel.</p>
+        <button class="btn-export" onclick="exportExcel()">Descargar Excel</button>
+      </div>
+
+      <div class="export-card">
+        <div class="export-icon img-icon">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="4" y="8" width="32" height="24" rx="3" fill="#eff6ff"/><circle cx="13" cy="17" r="3" fill="#3b82f6"/><path d="M4 26l9-7 7 5 5-4 9 7" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Dashboard como Imagen</h3>
+        <p>Captura el dashboard actual como imagen PNG para incluir en presentaciones.</p>
+        <button class="btn-export" onclick="exportImage()">Descargar PNG</button>
+      </div>
+
+      <div class="export-card">
+        <div class="export-icon template-icon">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="6" y="4" width="28" height="32" rx="3" fill="#fef9c3"/><rect x="10" y="10" width="8" height="8" rx="1" fill="#ca8a04"/><rect x="22" y="10" width="8" height="8" rx="1" fill="#ca8a04"/><rect x="10" y="22" width="8" height="8" rx="1" fill="#ca8a04"/><rect x="22" y="22" width="8" height="8" rx="1" fill="#ca8a04"/></svg>
+        </div>
+        <h3>Plantilla Excel</h3>
+        <p>Descarga la plantilla vacía con la estructura correcta para preparar tus datos.</p>
+        <button class="btn-export" onclick="downloadTemplate()">Descargar Plantilla</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- LOADER OVERLAY -->
+<div class="loader-overlay" id="loaderOverlay">
+  <div class="loader-box">
+    <div class="loader-spinner"></div>
+    <p class="loader-text" id="loaderText">Procesando datos…</p>
+  </div>
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div class="toast" id="toast"></div>
+
+<script src="utils.js"></script>
+<script src="charts.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
