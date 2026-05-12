@@ -2231,7 +2231,7 @@ function updateCircKPIs(ind, prest) {
   document.getElementById('kpiCirc').innerHTML=`
     <div class="kpi-card navy"><div class="kpi-label">Total préstamos</div><div class="kpi-value">${prest.length.toLocaleString('es-CL')}</div><div class="kpi-sub">En selección actual</div></div>
     <div class="kpi-card gold"><div class="kpi-label">Carrera más activa</div><div class="kpi-value" style="font-size:14px;line-height:1.3">${topCarrera?topCarrera[0].substring(0,22)+(topCarrera[0].length>22?'…':''):'—'}</div><div class="kpi-sub">${topCarrera?topCarrera[1].toLocaleString()+' préstamos':''}</div></div>
-    <div class="kpi-card blue"><div class="kpi-label">Áreas Dewey activas</div><div class="kpi-value">${Object.keys(ind.colPorDewey).filter(k=>ind.colPorDewey[k].prestamos>0).length}</div><div class="kpi-sub">de 10 áreas</div></div>
+    <div class="kpi-card blue"><div class="kpi-label">Áreas Dewey activas</div><div class="kpi-value">${Object.keys(ind.colPorDewey).filter(k=>ind.colPorDewey[k].prestamos>0).length}</div><div class="kpi-sub">de ${Object.keys(ind.colPorDewey).length} en la colección</div></div>
     <div class="kpi-card green"><div class="kpi-label">Tasa circulación (TC)</div><div class="kpi-value">${ind.TC}</div><div class="kpi-sub">préstamos/ejemplar</div></div>
   `;
 }
@@ -2591,8 +2591,22 @@ function exportExcel() {
   const evData=[['Año','Préstamos']];
   for(const [a,n] of Object.entries(ind.porAnio).sort()) evData.push([+a,n]);
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(evData),'Evolución Anual');
-  const descData=[['Topográfico','Título','Autor','Año','Años sin uso','TC','Índice','Clasificación']];
-  for(const r of ind.descarte.filter(x=>x.clasificacion!=='Bajo').sort((a,b)=>b.indiceDescarte-a.indiceDescarte)) descData.push([r.topografico,r.titulo,r.autor,r.anio_cutter||r.anio,r.aniosSinUso,r.tc_item,r.indiceDescarte,r.clasificacion]);
+  // Hoja: Candidatos a Descarte — usa campos actuales del modelo (estadoUso, ultimoPrestamo, deweynombre)
+  const descData=[['Topográfico','Título','Autor','Área Dewey','Año pub. (ref.)','Último préstamo','Años sin uso','Total prést. histórico','Estado']];
+  const descFiltered = ind.descarte
+    .filter(r => r.aniosSinUso >= 3 || r.fuenteUltimo === 'ninguno')
+    .sort((a, b) => (b.aniosSinUso ?? 999) - (a.aniosSinUso ?? 999));
+  for(const r of descFiltered) descData.push([
+    r.topografico,
+    r.titulo,
+    r.autor,
+    r.deweynombre || '',
+    r.anioPublicacion || '',
+    r.ultimoPrestamo,
+    r.aniosSinUso ?? '',
+    parseInt(r.prestamos) || 0,
+    r.estadoUso
+  ]);
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(descData),'Candidatos Descarte');
   XLSX.writeFile(wb,`Analitica_Bibliotecaria_PUCV_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
