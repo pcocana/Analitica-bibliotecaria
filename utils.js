@@ -143,6 +143,7 @@ const COL_ALIASES = {
   coleccion: {
     id: ['id','codigo','code','id_libro'],
     titulo: ['titulo','title','nombre','nombre_libro','nombre del libro'],
+    unidad_academica: ['unidad_academica','unidad académica','unidad academica','escuela','unidad'],
     area: ['area','disciplina','materia','departamento','seccion'],
     ejemplares: ['ejemplares','copias','copies','cantidad','stock','num_ejemplares'],
     ultimo_prestamo: ['ultimo_prestamo','ultima_fecha','last_loan','ultimo_uso','fecha_ultimo','ultimoprestamo'],
@@ -151,7 +152,8 @@ const COL_ALIASES = {
   prestamos: {
     id_titulo: ['id_titulo','id_libro','titulo_id','book_id','idtitulo'],
     fecha: ['fecha','date','fecha_prestamo','loan_date'],
-    carrera: ['carrera','facultad','programa','faculty','program','curso']
+    carrera: ['carrera','facultad','programa','faculty','program','curso'],
+    unidad_academica: ['unidad_academica','unidad académica','unidad academica','escuela','unidad']
   },
   bibliografia: {
     carrera: ['carrera','facultad','programa'],
