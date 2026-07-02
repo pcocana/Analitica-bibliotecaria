@@ -645,7 +645,7 @@ select:focus, input:focus { border-color: var(--navy); }
            ondrop="onDrop(event,'coleccion')">
       <span class="upload-icon">📚</span>
       <div class="upload-title">Archivo de Colección</div>
-      <div class="upload-sub">Exportación KOHA con Topográfico, Autor, Título, Año, Préstamos<br>Formatos: .xlsx · .xls · .csv</div>
+      <div class="upload-sub">Exportación KOHA con unidad_academica, Topográfico, Autor, Título, Año, Préstamos<br>Formatos: .xlsx · .xls · .csv</div>
       <input type="file" class="upload-input" id="inputColeccion" accept=".xlsx,.xls,.csv" onchange="onFileSelect(event,'coleccion')">
       <div class="upload-btn">📁 Seleccionar archivo</div>
       <div class="upload-file-info" id="infoColeccion">
@@ -659,7 +659,7 @@ select:focus, input:focus { border-color: var(--navy); }
            ondrop="onDrop(event,'prestamos')">
       <span class="upload-icon">🔄</span>
       <div class="upload-title">Historial de Préstamos</div>
-      <div class="upload-sub">Circulación histórica con Fecha, Carrera, Signatura, Título<br>Formatos: .xlsx · .xls · .csv</div>
+      <div class="upload-sub">Circulación histórica con Fecha, Carrera, Signatura, Título, unidad_academica<br>Formatos: .xlsx · .xls · .csv</div>
       <input type="file" class="upload-input" id="inputPrestamos" accept=".xlsx,.xls,.csv" onchange="onFileSelect(event,'prestamos')">
       <div class="upload-btn">📁 Seleccionar archivo</div>
       <div class="upload-file-info" id="infoPrestamos">
@@ -956,6 +956,7 @@ select:focus, input:focus { border-color: var(--navy); }
               <th>Años sin uso</th>
               <th>Total prést. histórico</th>
               <th>Estado</th>
+              <th>unidad_academica</th>
             </tr>
           </thead>
           <tbody id="descarteCriticoBody"></tbody>
@@ -1546,7 +1547,7 @@ function parseKohaFile(rows, type) {
   const warnings = [];
   const mapping = [];
   const fields = type === 'coleccion'
-    ? ['topografico','tipo_recurso','autor','titulo','anio','prestamos','estado_perdida']
+    ? ['topografico','tipo_recurso','autor','titulo','anio','prestamos','estado_perdida','unidad_academica']
     : ['fecha','carrera','tipo_usuario','transaccion','topografico','titulo','autor','tipo_recurso','unidad_academica'];
 
   const colMap = {};
@@ -1750,7 +1751,8 @@ function calcIndicadores(colData, prestData) {
       aniosSinUso,
       estadoUso,
       fuenteUltimo,
-      totalPrestHistorial: prestamosCol
+      totalPrestHistorial: prestamosCol,
+      unidad_academica: r.unidad_academica || '—'
     };
   });
 
@@ -2499,10 +2501,12 @@ function applyDescFiltros(descarteData) {
       <td>${aniosSinUsoTxt}</td>
       <td style="font-family:'JetBrains Mono',monospace;font-size:12px;text-align:center">${totalPrest > 0 ? totalPrest.toLocaleString() : '—'}</td>
       <td><span class="kpi-badge ${badgeClass}">${badgeLabel}</span></td>
+      <td style="font-size:12px">
+    ${r.unidad_academica || '—'}
+</td>
     </tr>`;
   }).join('');
 }
-
 function exportDescarteExcel() {
   const ind = state.indicadores;
   if (!ind) { alert('Procese datos primero'); return; }
@@ -2515,8 +2519,8 @@ function exportDescarteExcel() {
   if (dewey) data = data.filter(r => r.deweynombre === dewey);
   data = data.sort((a, b) => (b.aniosSinUso ?? 999) - (a.aniosSinUso ?? 999));
 
-  const rows = [['Topográfico','Título','Autor','Área Dewey','Año pub. (ref.)','Último préstamo','Años sin uso','Total prést. histórico','Estado']];
-  data.forEach(r => rows.push([r.topografico, r.titulo, r.autor, r.deweynombre, r.anioPublicacion || '', r.ultimoPrestamo, r.aniosSinUso ?? '', parseInt(r.prestamos) || 0, r.estadoUso]));
+  const rows = [['Topográfico','Título','Autor','Área Dewey','Año pub. (ref.)','Último préstamo','Años sin uso','Total prést. histórico','Estado','Unidad académica']];
+  data.forEach(r => rows.push([r.topografico,r.titulo,r.autor,r.deweynombre,r.anioPublicacion || '',r.ultimoPrestamo,r.aniosSinUso ?? '',parseInt(r.prestamos) || 0,r.estadoUso, r.unidad_academica || '']));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Sin circulación');
   XLSX.writeFile(wb, `Descarte_PUCV_${new Date().toISOString().slice(0,10)}.xlsx`);
@@ -2592,7 +2596,7 @@ function exportExcel() {
   for(const [a,n] of Object.entries(ind.porAnio).sort()) evData.push([+a,n]);
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(evData),'Evolución Anual');
   // Hoja: Candidatos a Descarte — usa campos actuales del modelo (estadoUso, ultimoPrestamo, deweynombre)
-  const descData=[['Topográfico','Título','Autor','Área Dewey','Año pub. (ref.)','Último préstamo','Años sin uso','Total prést. histórico','Estado']];
+  const descData=[['Topográfico','Título','Autor','Área Dewey','Año pub. (ref.)','Último préstamo','Años sin uso','Total prést. histórico','Estado','Unidad académica']];
   const descFiltered = ind.descarte
     .filter(r => r.aniosSinUso >= 3 || r.fuenteUltimo === 'ninguno')
     .sort((a, b) => (b.aniosSinUso ?? 999) - (a.aniosSinUso ?? 999));
@@ -2605,7 +2609,8 @@ function exportExcel() {
     r.ultimoPrestamo,
     r.aniosSinUso ?? '',
     parseInt(r.prestamos) || 0,
-    r.estadoUso
+    r.estadoUso,
+    r.unidad_academica || ''
   ]);
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(descData),'Candidatos Descarte');
   XLSX.writeFile(wb,`Analitica_Bibliotecaria_PUCV_${new Date().toISOString().slice(0,10)}.xlsx`);
